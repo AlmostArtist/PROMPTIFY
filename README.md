@@ -61,7 +61,9 @@ npm run companion:install -- <extension-id>
 
 Chrome is the default. Append `edge`, `brave`, or `chromium` for another
 supported Chromium browser. Reload the extension after installation. The
-companion registration is restricted to the extension ID you provide.
+companion registration is restricted to the extension ID you provide. Running
+the installer again also migrates installations from the former Prompt Kido
+native-host name.
 
 To remove it, delete `com.promptify.cli.json` from your browser's
 `NativeMessagingHosts` directory and remove the `PROMPTIFY/companion` directory

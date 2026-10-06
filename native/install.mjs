@@ -1,4 +1,4 @@
-import { mkdir, writeFile, copyFile } from 'node:fs/promises';
+import { mkdir, writeFile, copyFile, rm } from 'node:fs/promises';
 import { homedir, platform } from 'node:os';
 import { delimiter, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,4 +28,7 @@ await writeFile(join(manifestDir, 'com.promptify.cli.json'), JSON.stringify({
   name: 'com.promptify.cli', description: 'PROMPTIFY local CLI companion',
   path: launcher, type: 'stdio', allowed_origins: [`chrome-extension://${extensionId}/`],
 }, null, 2), { mode: 0o600 });
-console.log(`Companion installed for ${browser}. Open PROMPTIFY → Connections → Enable companion.`);
+// Remove the obsolete pre-rebrand registration after the new host is safely
+// installed. It cannot serve PROMPTIFY and otherwise makes upgrades confusing.
+await rm(join(manifestDir, 'com.promptkido.cli.json'), { force: true });
+console.log(`Companion installed for ${browser}. Reload PROMPTIFY, then open Connections.`);

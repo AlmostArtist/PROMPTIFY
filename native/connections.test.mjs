@@ -10,28 +10,27 @@ const { nativeRequest, connectionError } = await import(`data:text/javascript;ba
 test('a worker missing native API bindings returns recovery instructions instead of throwing', async (t) => {
   const previous = globalThis.chrome;
   t.after(() => { globalThis.chrome = previous; });
-  globalThis.chrome = { permissions: { contains: async () => true }, runtime: {} };
+  globalThis.chrome = { runtime: {} };
   const result = await nativeRequest({ action: 'status' });
   assert.equal(result.ok, false);
   assert.match(result.error, /reload/i);
 });
 
-test('permission denial never attempts to open the native host', async (t) => {
+test('native requests connect directly because nativeMessaging is a manifest permission', async (t) => {
   const previous = globalThis.chrome;
   t.after(() => { globalThis.chrome = previous; });
-  globalThis.chrome = { permissions: { contains: async () => false }, runtime: { connectNative: () => { throw new Error('Must not be called'); } } };
+  let sent;
+  const listeners = {};
+  const port = {
+    disconnect() {},
+    postMessage(message) { sent = message; queueMicrotask(() => listeners.message({ ok: true })); },
+    onMessage: { addListener(listener) { listeners.message = listener; } },
+    onDisconnect: { addListener(listener) { listeners.disconnect = listener; } },
+  };
+  globalThis.chrome = { runtime: { connectNative: (name) => { assert.equal(name, 'com.promptify.cli'); return port; } } };
   const result = await nativeRequest({ action: 'status' });
-  assert.equal(result.ok, false);
-  assert.match(result.error, /permission/i);
-});
-
-test('permission API failures are returned to the connection screen', async (t) => {
-  const previous = globalThis.chrome;
-  t.after(() => { globalThis.chrome = previous; });
-  globalThis.chrome = { permissions: { contains: async () => { throw new Error('Extension context invalidated'); } } };
-  const result = await nativeRequest({ action: 'status' });
-  assert.equal(result.ok, false);
-  assert.match(result.error, /context invalidated/);
+  assert.deepEqual(sent, { action: 'status' });
+  assert.deepEqual(result, { ok: true });
 });
 
 test('native registration errors point to the appropriate recovery action', () => {

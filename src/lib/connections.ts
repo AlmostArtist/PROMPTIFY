@@ -58,15 +58,8 @@ export async function saveAiProvider(provider: AiProvider): Promise<void> {
 
 /** Only the background worker opens native ports. Credentials never cross this bridge. */
 export async function nativeRequest(request: CliRequest): Promise<ConnectionResult> {
-  try {
-    if (!await chrome.permissions.contains({ permissions: ['nativeMessaging'] })) {
-      return { ok: false, error: 'Chrome permission is needed. Open Connect and click Connect ChatGPT or Connect Claude.' };
-    }
-  } catch (error) { return { ok: false, error: connectionError(error) }; }
-
-  // connectNative is only available when nativeMessaging was granted *before*
-  // the service worker started. If the permission was added at runtime (optional
-  // permission), Chrome exposes the API only after the worker restarts.
+  // nativeMessaging is a required manifest permission. Chrome does not allow a
+  // required permission to be requested again at runtime.
   if (typeof chrome.runtime.connectNative !== 'function') {
     return { ok: false, error: 'Chrome needs to reload the extension to activate the native messaging API. Go to chrome://extensions, click the reload button on PROMPTIFY, then try again.' };
   }

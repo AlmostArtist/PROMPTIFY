@@ -13,7 +13,6 @@ export function Connections({ onChange, onSettings, flash }: {
   const [provider, setProvider] = useState<AiProvider>('openrouter');
   const [result, setResult] = useState<ConnectionResult | null>(null);
   const [busy, setBusy] = useState('');
-  const [permitted, setPermitted] = useState(false);
   const [error, setError] = useState('');
   const [loginPending, setLoginPending] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState<CliProvider | null>(null);
@@ -33,10 +32,7 @@ export function Connections({ onChange, onSettings, flash }: {
 
   useEffect(() => {
     void loadAiProvider().then(setProvider);
-    void chrome.permissions.contains({ permissions: ['nativeMessaging'] }).then((allowed) => {
-      setPermitted(allowed);
-      if (allowed) void refresh();
-    }).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Could not check Chrome permissions. Reload the extension.'));
+    void refresh();
   }, [refresh]);
 
   const select = async (next: AiProvider) => {
@@ -65,14 +61,6 @@ export function Connections({ onChange, onSettings, flash }: {
     running.current = true;
     setBusy(id || 'status'); setError(''); setConfirmLogout(null);
     try {
-      // Request directly in the click handler, before any await, to preserve
-      // Chrome's user gesture. Both provider buttons can start setup themselves.
-      const granted = await chrome.permissions.request({ permissions: ['nativeMessaging'] });
-      setPermitted(granted);
-      if (!granted) {
-        setError('Chrome did not grant access to the local companion. Click Log in again and allow the permission. If no prompt appears in the side panel, open connection setup in a tab below.');
-        return;
-      }
       const response = await requestConnections('status');
       setResult(response);
       if (!response.ok) { setError(response.error || 'The companion did not respond.'); return; }
@@ -113,7 +101,7 @@ export function Connections({ onChange, onSettings, flash }: {
 
   return <div className="pk-connections">
 
-    {!permitted && <div className="pk-note"><p>Log in with your own ChatGPT or Claude account below. PROMPTIFY uses the official CLI on this computer — your password and tokens never touch the extension.</p></div>}
+    <div className="pk-note"><p>Log in with your own ChatGPT or Claude account below. PROMPTIFY uses the official CLI on this computer — your password and tokens never touch the extension.</p></div>
     {error && <div className="pk-connection-error" role="alert"><strong>Connection needs attention</strong><p>{error}</p>{/reload/i.test(error) && <button className="p-btn p-btn-ghost p-btn-sm" onClick={() => chrome.runtime.reload()}>Reload extension</button>}</div>}
     {busy && <p role="status" className="pk-notice">{loginPending ? 'Finish signing in in the browser window opened by the CLI…' : busy.startsWith('logout') || busy.startsWith('switch') ? 'Signing out…' : 'Checking your accounts…'}</p>}
 
@@ -172,13 +160,13 @@ export function Connections({ onChange, onSettings, flash }: {
     <section className="pk-companion">
       <div className="pk-row"><h3>Local companion</h3><span className="pk-status" data-ready={result?.ok}><i aria-hidden="true" />{result?.ok ? 'Connected' : 'Setup required'}</span></div>
       <p>Talks to the official CLIs on this computer. Credentials stay in their own login stores. macOS and Linux supported.</p>
-      <div className="pk-button-row"><button className="p-btn p-btn-ghost p-btn-sm" disabled={Boolean(busy)} onClick={() => void connect()}>{busy === 'status' ? 'Checking…' : permitted ? 'Recheck connection' : 'Enable companion'}</button>
+      <div className="pk-button-row"><button className="p-btn p-btn-ghost p-btn-sm" disabled={Boolean(busy)} onClick={() => void connect()}>{busy === 'status' ? 'Checking…' : 'Recheck connection'}</button>
         <button className="pk-text-link" onClick={() => void chrome.tabs.create({ url: chrome.runtime.getURL('sidepanel.html#connections') })}>Open setup in a tab ↗</button>
       </div>
       <details open={Boolean(error)}><summary>Setup instructions</summary>
         <ol className="pk-setup"><li>Install <a href="https://developers.openai.com/codex/cli" target="_blank" rel="noreferrer">Codex CLI</a> or <a href="https://code.claude.com/docs/en/setup" target="_blank" rel="noreferrer">Claude Code</a> and Node.js 20+.</li>
           <li>In the PROMPTIFY project folder, run:<div className="pk-command"><code>npm run companion:install -- {chrome.runtime.id}</code><button aria-label="Copy companion install command" onClick={() => void copy(`npm run companion:install -- ${chrome.runtime.id}`)}>Copy</button></div><p>Using Edge or Brave? Add <code>edge</code> or <code>brave</code> at the end.</p></li>
-          <li>Click Log in with ChatGPT or Claude above and allow Chrome’s permission prompt. Existing CLI logins are detected automatically. You can also use a terminal:
+          <li>Click Log in with ChatGPT or Claude above. Existing CLI logins are detected automatically. You can also use a terminal:
             {[BRAND.codex.login, BRAND.claude.login, BRAND.codex.logout, BRAND.claude.logout].map((command) => <div className="pk-command" key={command}><code>{command}</code><button aria-label={`Copy ${command}`} onClick={() => void copy(command)}>Copy</button></div>)}
           </li><li>Recheck the connection and choose “Use this account”.</li></ol>
       </details>
