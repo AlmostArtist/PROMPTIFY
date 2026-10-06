@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">PROMPTIFY expressive eyes logo</title>
+  <defs>
+    <linearGradient id="visor" x1="24" y1="22" x2="104" y2="108" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#20262B"/>
+      <stop offset="1" stop-color="#090B0D"/>
+    </linearGradient>
+    <linearGradient id="eye" x1="42" y1="48" x2="80" y2="82" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8F5ED"/>
+      <stop offset="1" stop-color="#B9FFE0"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#visor)" d="M17 42c2-17 16-28 33-28h28c17 0 31 11 33 28l4 27c3 24-15 45-39 45H52C28 114 10 93 13 69l4-27Z"/>
+  <path fill="none" stroke="#6EE7B7" stroke-linecap="round" stroke-width="5" d="M28 39c7-9 15-13 24-14" opacity=".8"/>
+  <path fill="url(#eye)" d="M30 56c2-7 8-11 15-10l14 2c4 1 7 5 6 9l-2 15c-1 8-9 13-16 10l-8-3c-8-3-12-13-9-23Z"/>
+  <path fill="url(#eye)" d="M98 56c-2-7-8-11-15-10l-14 2c-4 1-7 5-6 9l2 15c1 8 9 13 16 10l8-3c8-3 12-13 9-23Z"/>
+  <path fill="#111719" d="m41 57 13 3-3 10-13-4 3-9Zm46 0-13 3 3 10 13-4-3-9Z"/>
+  <circle cx="48" cy="61" r="2.5" fill="#fff"/>
+  <circle cx="80" cy="61" r="2.5" fill="#fff"/>
+  <path fill="none" stroke="#6EE7B7" stroke-linecap="round" stroke-width="4" d="M54 94c7 4 13 4 20 0"/>
+</svg>

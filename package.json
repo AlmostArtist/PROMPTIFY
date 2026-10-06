@@ -1,0 +1,47 @@
+{
+  "name": "promptify-extension",
+  "version": "1.0.0",
+  "description": "Open-source browser workspace for writing, improving, organizing, and reusing AI prompts.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlmostArtist/PROMPTIFY.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AlmostArtist/PROMPTIFY/issues"
+  },
+  "homepage": "https://github.com/AlmostArtist/PROMPTIFY#readme",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "companion:install": "node native/install.mjs",
+    "test": "node --test native/*.test.mjs tests/*.test.mjs",
+    "test:ui": "npm run build && playwright test"
+  },
+  "dependencies": {
+    "@openrouter/sdk": "^0.13.7",
+    "fast-xml-parser": "^5.11.2",
+    "fflate": "^0.8.3",
+    "pdfjs-dist": "^4.10.38",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@crxjs/vite-plugin": "^3.0.0",
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/chrome": "^0.0.270",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.29",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.5.4",
+    "vite": "^8.3.3"
+  }
+}

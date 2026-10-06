@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PROMPTIFY — Microphone</title>
+    <style>
+      :root { color-scheme: dark light; }
+      html, body { margin: 0; height: 100%; background: #0d0d0d; color: #f4f4f5; font: 15px/1.5 Inter, system-ui, -apple-system, sans-serif; }
+      @media (prefers-color-scheme: light) { html, body { background: #f5f6f8; color: #111; } }
+      main { min-height: 100%; display: grid; place-items: center; padding: 24px; box-sizing: border-box; text-align: center; }
+      .card { max-width: 420px; }
+      .icon { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 18px; background: #ffd43b; color: #0e0e0e; }
+      h1 { font-size: 20px; margin: 0 0 8px; }
+      p { margin: 0 0 18px; opacity: 0.7; }
+      button { font: inherit; font-weight: 600; border: 0; border-radius: 999px; padding: 10px 22px; cursor: pointer; background: #ffd43b; color: #0e0e0e; }
+      #status { margin-top: 16px; font-size: 13px; opacity: 0.8; min-height: 20px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="card">
+        <div class="icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/></svg>
+        </div>
+        <h1>Allow microphone for voice commands</h1>
+        <p>Chrome needs a one-time OK before PROMPTIFY can hear “Open my YouTube AI research tabs”. Audio is only used while you're talking to it.</p>
+        <button id="allow" type="button">Allow microphone</button>
+        <div id="status" role="status"></div>
+      </div>
+    </main>
+    <script type="module" src="/src/mic/main.ts"></script>
+  </body>
+</html>

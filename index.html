@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy — PROMPTIFY</title>
+    <meta name="description" content="Privacy Policy for the PROMPTIFY Chrome extension." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F7F8FA;
+            --surface: #FFFFFF;
+            --ink: #11151A;
+            --ink-soft: #5A6068;
+            --ink-faint: #8A9099;
+            --border: #E6E9EC;
+            --teal: #0F7476;
+            --teal-dark: #063E40;
+            --teal-tint: #E3F1F1;
+            --gold: #C9971F;
+            --gold-tint: #FBF2DE;
+            --panel: #0D0D0D;
+            --panel-fg: #F2F2F2;
+            --panel-border: #262626;
+            --radius: 14px;
+            --maxw: 1180px;
+            --serif-fallback: "Space Grotesk", system-ui, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            * {
+                animation-duration: 0.001ms !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: "Inter", system-ui, -apple-system, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            color: var(--teal-dark);
+            text-decoration-color: rgba(15, 116, 118, .35);
+            text-underline-offset: 2px;
+        }
+
+        a:hover {
+            color: var(--teal);
+        }
+
+        a:focus-visible,
+        button:focus-visible {
+            outline: 2px solid var(--teal);
+            outline-offset: 3px;
+            border-radius: 4px;
+        }
+
+        .mono {
+            font-family: "IBM Plex Mono", monospace;
+        }
+
+        /* ---------- top bar ---------- */
+        .topbar {
+            background: var(--panel);
+            color: var(--panel-fg);
+            border-bottom: 1px solid var(--panel-border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-inner {
+            max-width: var(--maxw);
+            margin: 0 auto;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar .mark {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: linear-gradient(160deg, var(--teal), var(--teal-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .topbar .mark svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .topbar .wordmark {
+            font-family: "Space Grotesk", sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 0.01em;
+            color: #fff;
+        }
+
+        .topbar .sep {
+            color: #444;
+            padding: 0 2px;
+        }
+
+        .topbar .page-tag {
+            font-size: 13px;
+            color: #9A9FA6;
+        }
+
+        .topbar .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--teal);
+            display: inline-block;
+            margin-right: 7px;
+            box-shadow: 0 0 0 3px rgba(15, 116, 118, .25);
+        }
+
+        .topbar .back {
+            margin-left: auto;
+            font-size: 13px;
+            color: #C7CBD1;
+            text-decoration: none;
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+        .topbar .back:hover {
+            border-color: var(--teal);
+            color: #fff;
+        }
+
+        /* ---------- hero ---------- */
+        .hero {
+            max-width: var(--maxw);
+            margin: 0 auto;
+            padding: 64px 24px 40px;
+        }
+
+        .terminal-line {
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 13px;
+            color: var(--ink-soft);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border-radius: 999px;
+            margin-bottom: 22px;
+        }
+
+        .terminal-line .caret {
+            display: inline-block;
+            width: 7px;
+            height: 14px;
+            background: var(--teal);
+            animation: blink 1.1s steps(1) infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .hero h1 {
+            font-family: "Space Grotesk", sans-serif;
+            font-weight: 700;
+            font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+            line-height: 1.08;
+            margin: 0 0 18px;
+            letter-spacing: -0.01em;
+        }
+
+        .hero h1 em {
+            font-style: normal;
+            color: var(--teal-dark);
+            background: linear-gradient(180deg, transparent 62%, var(--gold-tint) 62%);
+        }
+
+        .hero p.lede {
+            max-width: 640px;
+            font-size: 1.08rem;
+            color: var(--ink-soft);
+            margin: 0 0 26px;
+        }
+
+        .meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pill {
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 12.5px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--ink-soft);
+        }
+
+        .pill.accent {
+            background: var(--teal-tint);
+            border-color: transparent;
+            color: var(--teal-dark);
+        }
+
+        /* ---------- layout ---------- */
+        .layout {
+            max-width: var(--maxw);
+            margin: 0 auto;
+            padding: 8px 24px 100px;
+            display: grid;
+            grid-template-columns: 230px 1fr;
+            gap: 48px;
+            align-items: start;
+        }
+
+        nav.toc {
+            position: sticky;
+            top: 84px;
+            align-self: start;
+        }
+
+        nav.toc .toc-label {
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 11px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+            margin: 0 0 12px;
+        }
+
+        nav.toc ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav.toc li {
+            margin-bottom: 2px;
+        }
+
+        nav.toc a {
+            display: flex;
+            gap: 10px;
+            align-items: baseline;
+            padding: 7px 10px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            color: var(--ink-soft);
+            text-decoration: none;
+        }
+
+        nav.toc a .num {
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 11px;
+            color: var(--ink-faint);
+            flex-shrink: 0;
+        }
+
+        nav.toc a:hover {
+            background: var(--teal-tint);
+            color: var(--teal-dark);
+        }
+
+        nav.toc a.active {
+            background: var(--teal-tint);
+            color: var(--teal-dark);
+            font-weight: 600;
+        }
+
+        nav.toc a.active .num {
+            color: var(--teal-dark);
+        }
+
+        main.doc {
+            min-width: 0;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px 36px 16px;
+        }
+
+        section.policy-section {
+            padding: 34px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        section.policy-section:last-child {
+            border-bottom: none;
+        }
+
+        .sec-eyebrow {
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 12px;
+            color: var(--teal-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .sec-eyebrow .bar {
+            width: 16px;
+            height: 1.5px;
+            background: var(--gold);
+            display: inline-block;
+        }
+
+        section.policy-section h2 {
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 1.5rem;
+            margin: 0 0 14px;
+            letter-spacing: -0.005em;
+        }
+
+        section.policy-section h3 {
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 1.05rem;
+            margin: 22px 0 8px;
+        }
+
+        section.policy-section p {
+            margin: 0 0 14px;
+            color: var(--ink);
+        }
+
+        section.policy-section ul {
+            margin: 0 0 14px;
+            padding-left: 1.2em;
+        }
+
+        section.policy-section li {
+            margin-bottom: 6px;
+        }
+
+        .muted {
+            color: var(--ink-soft);
+        }
+
+        table.perm-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 6px 0 8px;
+            font-size: 14.5px;
+        }
+
+        table.perm-table th,
+        table.perm-table td {
+            text-align: left;
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        table.perm-table th {
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: var(--ink-faint);
+            font-weight: 500;
+        }
+
+        table.perm-table td.perm-name {
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 13px;
+            color: var(--teal-dark);
+            white-space: nowrap;
+        }
+
+        table.perm-table tr:nth-child(even) td {
+            background: #FAFBFC;
+        }
+
+        .callout {
+            background: var(--gold-tint);
+            border: 1px solid #EFE0B8;
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 14.5px;
+            color: #6B5314;
+            margin: 8px 0 16px;
+        }
+
+        /* ---------- footer ---------- */
+        footer {
+            background: var(--panel);
+            color: #9A9FA6;
+            border-top: 1px solid var(--panel-border);
+        }
+
+        .footer-inner {
+            max-width: var(--maxw);
+            margin: 0 auto;
+            padding: 36px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: center;
+            font-size: 13.5px;
+        }
+
+        footer a {
+            color: #D7DADD;
+        }
+
+        footer a:hover {
+            color: #fff;
+        }
+
+        /* ---------- mobile ---------- */
+        @media (max-width: 860px) {
+            .layout {
+                grid-template-columns: 1fr;
+                gap: 18px;
+                padding-top: 0;
+            }
+
+            nav.toc {
+                position: static;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            nav.toc ul {
+                display: flex;
+                gap: 6px;
+                padding-bottom: 6px;
+            }
+
+            nav.toc li {
+                margin-bottom: 0;
+            }
+
+            nav.toc a {
+                white-space: nowrap;
+                border: 1px solid var(--border);
+            }
+
+            .card {
+                padding: 6px 20px 10px;
+            }
+
+            .topbar .page-tag {
+                display: none;
+            }
+        }
+
+        @media print {
+
+            .topbar,
+            nav.toc,
+            footer,
+            .terminal-line {
+                display: none !important;
+            }
+
+            body {
+                background: #fff;
+            }
+
+            .card {
+                border: none;
+                padding: 0;
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-inner">
+            <div class="mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="13" r="7" fill="#fff" opacity="0.95" />
+                    <circle cx="9" cy="12" r="1.1" fill="#0D0D0D" />
+                    <circle cx="15" cy="12" r="1.1" fill="#0D0D0D" />
+                    <path d="M9 16c1 1 5 1 6 0" stroke="#0D0D0D" stroke-width="1.3" stroke-linecap="round" />
+                    <line x1="12" y1="6" x2="12" y2="3" stroke="#fff" stroke-width="1.3" />
+                </svg>
+            </div>
+            <span class="wordmark">PROMPTIFY</span>
+            <span class="sep">/</span>
+            <span class="page-tag mono"><span class="dot"></span>privacy-policy</span>
+            <a class="back" href="https://github.com/AlmostArtist/PROMPTIFY">← GitHub</a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <div class="terminal-line">
+            <span class="caret" aria-hidden="true"></span>
+            promptify --read privacy-policy.md
+        </div>
+        <h1>What PROMPTIFY does<br />with your <em>data</em>.</h1>
+        <p class="lede">Plainly stated: prompts you run go only to the AI provider you select, your settings stay on
+            your device, and nothing is sold or used for advertising.</p>
+        <div class="meta-row">
+            <span class="pill accent">Last updated: June 21, 2026</span>
+            <span class="pill">Applies to: PROMPTIFY Chrome Extension</span>
+            <span class="pill">No PROMPTIFY account required</span>
+        </div>
+    </div>
+
+    <div class="layout">
+
+        <nav class="toc" aria-label="Table of contents">
+            <p class="toc-label">On this page</p>
+            <ul>
+                <li><a href="#collect"><span class="num mono">01</span>Information we collect</a></li>
+                <li><a href="#use"><span class="num mono">02</span>How it's used</a></li>
+                <li><a href="#third-party"><span class="num mono">03</span>Third-party services</a></li>
+                <li><a href="#sharing"><span class="num mono">04</span>Sharing &amp; sale</a></li>
+                <li><a href="#storage"><span class="num mono">05</span>Storage &amp; security</a></li>
+                <li><a href="#controls"><span class="num mono">06</span>Your controls</a></li>
+                <li><a href="#permissions"><span class="num mono">07</span>Permissions</a></li>
+                <li><a href="#children"><span class="num mono">08</span>Children's privacy</a></li>
+                <li><a href="#changes"><span class="num mono">09</span>Changes to this policy</a></li>
+                <li><a href="#contact"><span class="num mono">10</span>Contact us</a></li>
+            </ul>
+        </nav>
+
+        <main class="doc">
+            <div class="card">
+
+                <section class="policy-section" id="collect">
+                    <p class="sec-eyebrow"><span class="bar"></span>01 / DATA</p>
+                    <h2>Information we collect</h2>
+                    <p>PROMPTIFY is built to need as little of your data as possible. Here's exactly what it touches.
+                    </p>
+
+                    <h3>Content you choose to process</h3>
+                    <p>When you run a tool — Enhance, Summarize, Translate, Brainstorm, Code Review, Image Prompt, and
+                        so on — the extension reads the relevant text. That's whatever you type into the side panel,
+                        content from the tab you've focused, or text pulled from a PDF or DOCX file you open in it, so
+                        it can be sent for AI processing.</p>
+
+                    <h3>Your OpenRouter API key</h3>
+                    <p>PROMPTIFY is "bring your own key." The OpenRouter API key you enter in Settings is stored
+                        locally in your browser and used only to authenticate your own requests to OpenRouter. We never
+                        receive or see this key.</p>
+
+                    <h3>Optional CLI account details</h3>
+                    <p>If you enable the native companion, the official Codex or Claude CLI may report limited display
+                        details such as email, plan, login method, organization, CLI version, model availability, and
+                        quota windows. PROMPTIFY uses these details only in the local Connections screen. Passwords,
+                        session tokens, and raw authentication output never cross the native bridge.</p>
+
+                    <h3>Saved prompts and history</h3>
+                    <p>Prompts you save, and your enhancement history, are stored locally in your browser. This data
+                        stays on your device — we don't receive a copy.</p>
+
+                    <h3>What we do <strong>not</strong> collect</h3>
+                    <ul>
+                        <li>Account registration details, names, or email addresses</li>
+                        <li>Payment or financial information</li>
+                        <li>Health information</li>
+                        <li>Precise location data</li>
+                        <li>Analytics or browsing-tracking data</li>
+                    </ul>
+                </section>
+
+                <section class="policy-section" id="use">
+                    <p class="sec-eyebrow"><span class="bar"></span>02 / USAGE</p>
+                    <h2>How information is used</h2>
+                    <ul>
+                        <li>Text you submit is sent to the provider you select: OpenRouter through its API, or the
+                            official Codex/Claude CLI through the optional local native companion. We do not run a
+                            PROMPTIFY server that receives, logs, or stores this content.</li>
+                        <li>Saved prompts, history, and your API key remain in local browser storage so the extension
+                            works across sessions on your device.</li>
+                        <li>File text (PDF/DOCX) is parsed locally in your browser to extract text before it's used in a
+                            tool you choose to run.</li>
+                    </ul>
+                </section>
+
+                <section class="policy-section" id="third-party">
+                    <p class="sec-eyebrow"><span class="bar"></span>03 / THIRD PARTIES</p>
+                    <h2>Third-party services</h2>
+                    <p>PROMPTIFY sends content only when you actively run an AI tool. Depending on your selected
+                        connection, the recipient is <a href="https://openrouter.ai" target="_blank"
+                            rel="noopener">OpenRouter</a>, OpenAI through Codex CLI, or Anthropic through Claude Code.
+                        Each provider handles data under its own terms and privacy policy.</p>
+                    <div class="callout">
+                        Review your selected provider's privacy policy before sending sensitive content. PROMPTIFY
+                        does not control how OpenRouter, OpenAI, Anthropic, or routed model providers handle data.
+                    </div>
+                </section>
+
+                <section class="policy-section" id="sharing">
+                    <p class="sec-eyebrow"><span class="bar"></span>04 / SHARING</p>
+                    <h2>Data sharing and sale</h2>
+                    <p>We do not sell, rent, or share your data with third parties for advertising, and we do not use it
+                        for credit, lending, or insurance decisions. Period.</p>
+                </section>
+
+                <section class="policy-section" id="storage">
+                    <p class="sec-eyebrow"><span class="bar"></span>05 / STORAGE</p>
+                    <h2>Storage and security</h2>
+                    <p>Everything PROMPTIFY remembers — your API key, saved prompts, history, and settings — is stored
+                        locally on your device via Chrome's storage API. Uninstalling the extension removes this data.
+                        We don't maintain a backend database of your content.</p>
+                </section>
+
+                <section class="policy-section" id="controls">
+                    <p class="sec-eyebrow"><span class="bar"></span>06 / CONTROL</p>
+                    <h2>Your choices and controls</h2>
+                    <ul>
+                        <li>Clear your enhancement history or delete saved prompts any time, from inside the extension.
+                        </li>
+                        <li>Remove your OpenRouter API key any time — this disables AI-powered features.</li>
+                        <li>Uninstall the extension any time to remove all locally stored data.</li>
+                    </ul>
+                </section>
+
+                <section class="policy-section" id="permissions">
+                    <p class="sec-eyebrow"><span class="bar"></span>07 / PERMISSIONS</p>
+                    <h2>Permissions explained</h2>
+                    <p>Each permission PROMPTIFY requests maps to one specific feature — nothing is requested "just in
+                        case."</p>
+                    <table class="perm-table">
+                        <thead>
+                            <tr>
+                                <th>Permission</th>
+                                <th>Why we need it</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="perm-name">storage</td>
+                                <td>Save your prompts, history, and settings locally on your device.</td>
+                            </tr>
+                            <tr>
+                                <td class="perm-name">sidePanel</td>
+                                <td>Display the PROMPTIFY interface in Chrome's side panel.</td>
+                            </tr>
+                            <tr>
+                                <td class="perm-name">activeTab / scripting</td>
+                                <td>Read text from, and insert generated text into, the AI chat tab you're actively
+                                    using.</td>
+                            </tr>
+                            <tr>
+                                <td class="perm-name">downloads</td>
+                                <td>Let you export results as a <code>.md</code> file.</td>
+                            </tr>
+                            <tr><td class="perm-name">contextMenus</td><td>Offer explicitly selected AI actions from Chrome's context menu.</td></tr>
+                            <tr><td class="perm-name">nativeMessaging</td><td>Talk to the optional, locally installed CLI companion.</td></tr>
+                            <tr><td class="perm-name">optional: history / tabs</td><td>Enable browser recall and tab actions only after you approve access.</td></tr>
+                            <tr><td class="perm-name">host: openrouter.ai</td><td>Send requests to OpenRouter using your own API key.</td></tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="policy-section" id="children">
+                    <p class="sec-eyebrow"><span class="bar"></span>08 / AGE</p>
+                    <h2>Children's privacy</h2>
+                    <p>PROMPTIFY is not directed to children under 13, and we do not knowingly collect data from
+                        children.</p>
+                </section>
+
+                <section class="policy-section" id="changes">
+                    <p class="sec-eyebrow"><span class="bar"></span>09 / UPDATES</p>
+                    <h2>Changes to this policy</h2>
+                    <p>We may update this policy from time to time. Material changes will be reflected by updating the
+                        "Last updated" date at the top of this page.</p>
+                </section>
+
+                <section class="policy-section" id="contact">
+                    <p class="sec-eyebrow"><span class="bar"></span>10 / CONTACT</p>
+                    <h2>Contact us</h2>
+                    <p>Questions about this policy can be opened in the public repository:</p>
+                    <p class="mono"><a href="https://github.com/AlmostArtist/PROMPTIFY/issues" target="_blank"
+                        rel="noopener">github.com/AlmostArtist/PROMPTIFY/issues</a></p>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-inner">
+            <span>© 2026 PROMPTIFY contributors · MIT License</span>
+            <span><a href="https://github.com/AlmostArtist/PROMPTIFY">Source code</a> · <a
+                    href="https://github.com/AlmostArtist/PROMPTIFY/issues">Issues</a></span>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll-spy: highlight the active TOC entry as sections pass by
+        (function () {
+            var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+            var sections = links.map(function (l) { return document.querySelector(l.getAttribute('href')); });
+            function onScroll() {
+                var y = window.scrollY + 120;
+                var activeIndex = 0;
+                for (var i = 0; i < sections.length; i++) {
+                    if (sections[i] && sections[i].offsetTop <= y) activeIndex = i;
+                }
+                links.forEach(function (l, i) { l.classList.toggle('active', i === activeIndex); });
+            }
+            document.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        })();
+    </script>
+
+</body>
+
+</html>
