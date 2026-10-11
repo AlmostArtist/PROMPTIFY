@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { SavedPrompt } from '@/engine/types';
 import {
   addSavedPrompt,
@@ -8,8 +8,8 @@ import {
   saveHumanTone,
   updateSavedPrompt,
 } from '@/lib/storage';
-import { HUMAN_TONE_LABEL, withHumanTone } from '@/data/humanTone';
-import { Toggle } from './primitives';
+import { withHumanTone } from '@/data/humanTone';
+import { fillPromptVariables, PROMPT_CATEGORIES, PROMPT_STARTERS, promptVariables } from '@/data/promptTemplates';
 
 interface SavedPromptsProps {
   setPrompt: (text: string) => Promise<boolean>;
@@ -17,263 +17,280 @@ interface SavedPromptsProps {
   flash: (msg: string) => void;
 }
 
+interface Draft { label: string; content: string; category: string; template: boolean }
+const EMPTY: Draft = { label: '', content: '', category: 'General', template: false };
+
+/**
+ * Prompts tab — a minimal library. A slim toolbar (search · New · human voice),
+ * category chips, compact rows, and an inline save sheet with template
+ * starters. Templates with [VARIABLES] ask for values before inserting.
+ */
 export function SavedPrompts({ setPrompt, onBurst, flash }: SavedPromptsProps) {
   const [prompts, setPrompts] = useState<SavedPrompt[]>([]);
   const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('All');
   const [humanTone, setHumanTone] = useState(false);
-  const [showCreator, setShowCreator] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ label: '', content: '' });
+  const [sheet, setSheet] = useState<{ id: string | null } | null>(null);
+  const [draft, setDraft] = useState<Draft>(EMPTY);
+  const [starter, setStarter] = useState('blank');
+  const [filling, setFilling] = useState<string | null>(null);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
 
-  const refresh = useCallback(async () => {
-    setPrompts(await ensureDefaultPrompts());
-  }, []);
-
+  const refresh = useCallback(async () => { setPrompts(await ensureDefaultPrompts()); }, []);
+  useEffect(() => { void refresh(); void loadHumanTone().then(setHumanTone); }, [refresh]);
+  useEffect(() => { if (sheet) nameRef.current?.focus(); }, [sheet]);
   useEffect(() => {
-    void refresh();
-    void loadHumanTone().then(setHumanTone);
-  }, [refresh]);
+    if (!confirmDelete) return;
+    const t = window.setTimeout(() => setConfirmDelete(null), 3000);
+    return () => clearTimeout(t);
+  }, [confirmDelete]);
 
-  const toggleHumanTone = useCallback((on: boolean) => {
-    setHumanTone(on);
-    void saveHumanTone(on);
-  }, []);
+  const vars = useMemo(() => promptVariables(draft.content), [draft.content]);
 
-  const handleCreate = useCallback(async () => {
-    if (!form.label.trim() || !form.content.trim()) return;
-    const prompt: SavedPrompt = {
-      id: crypto.randomUUID?.() ?? `sp-${Date.now()}`,
-      label: form.label.trim(),
-      content: form.content.trim(),
-      ts: Date.now(),
-    };
-    setPrompts(await addSavedPrompt(prompt));
-    setForm({ label: '', content: '' });
-    setShowCreator(false);
-    flash('Prompt saved ✓');
-  }, [form, flash]);
+  const openNew = () => { setDraft(EMPTY); setStarter('blank'); setSheet({ id: null }); setFilling(null); };
+  const openEdit = (p: SavedPrompt) => {
+    setDraft({ label: p.label, content: p.content, category: p.category ?? 'General', template: Boolean(p.template) });
+    setStarter('');
+    setSheet({ id: p.id });
+    setFilling(null);
+  };
+  const closeSheet = () => { setSheet(null); setDraft(EMPTY); };
 
-  const handleUpdate = useCallback(async () => {
-    if (!editingId || !form.label.trim() || !form.content.trim()) return;
-    setPrompts(await updateSavedPrompt(editingId, { label: form.label.trim(), content: form.content.trim() }));
-    setEditingId(null);
-    setForm({ label: '', content: '' });
-    flash('Prompt updated ✓');
-  }, [editingId, form, flash]);
+  const pickStarter = (id: string) => {
+    const s = PROMPT_STARTERS.find((x) => x.id === id);
+    if (!s) return;
+    setStarter(id);
+    setDraft((d) => ({
+      label: d.label || (id === 'blank' ? '' : s.label),
+      content: s.content,
+      category: s.category,
+      template: promptVariables(s.content).length > 0,
+    }));
+  };
 
-  const handleDelete = useCallback(async (id: string) => {
-    setPrompts(await removeSavedPrompt(id));
-    flash('Prompt deleted');
-  }, [flash]);
-
-  const insertPrompt = useCallback(async (text: string) => {
-    const ok = await setPrompt(withHumanTone(text, humanTone));
-    if (ok) {
-      onBurst?.();
-      flash(humanTone ? 'Inserted with human tone ✓' : 'Inserted into chat ✓');
+  const save = async () => {
+    const label = draft.label.trim(), content = draft.content.trim();
+    if (!label || !content) return;
+    const fields = { label, content, category: draft.category, template: draft.template };
+    if (sheet?.id) {
+      setPrompts(await updateSavedPrompt(sheet.id, fields));
+      flash('Prompt updated');
     } else {
-      flash('Focus a supported AI chat tab first.');
+      setPrompts(await addSavedPrompt({ id: crypto.randomUUID?.() ?? `sp-${Date.now()}`, ts: Date.now(), ...fields }));
+      flash(draft.template ? 'Template saved' : 'Prompt saved');
     }
-  }, [setPrompt, onBurst, flash, humanTone]);
+    closeSheet();
+  };
 
-  const startEdit = useCallback((p: SavedPrompt) => {
-    setEditingId(p.id);
-    setForm({ label: p.label, content: p.content });
-    setShowCreator(true);
-  }, []);
+  const insert = async (text: string) => {
+    const ok = await setPrompt(withHumanTone(text, humanTone));
+    if (ok) { onBurst?.(); flash(humanTone ? 'Inserted with human voice' : 'Inserted into chat'); setFilling(null); }
+    else flash('Focus a supported AI chat tab first.');
+  };
 
-  const filtered = prompts.filter((prompt) => `${prompt.label} ${prompt.content}`.toLowerCase().includes(query.toLowerCase()));
+  const open = (p: SavedPrompt) => {
+    if (p.template && promptVariables(p.content).length) {
+      setFilling(filling === p.id ? null : p.id);
+      setValues({});
+      return;
+    }
+    void insert(p.content);
+  };
+
+  const remove = async (id: string) => {
+    if (confirmDelete !== id) { setConfirmDelete(id); return; }
+    setPrompts(await removeSavedPrompt(id));
+    setConfirmDelete(null);
+    flash('Prompt deleted');
+  };
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const p of prompts) { const k = p.category ?? 'General'; c[k] = (c[k] ?? 0) + 1; }
+    return c;
+  }, [prompts]);
+  const chips = ['All', ...PROMPT_CATEGORIES.filter((c) => counts[c])];
+  const q = query.toLowerCase();
+  const filtered = prompts.filter((p) =>
+    (category === 'All' || (p.category ?? 'General') === category) &&
+    `${p.label} ${p.content}`.toLowerCase().includes(q));
 
   return (
-    <div>
-      <input type="search" className="p-input pk-search" aria-label="Search saved prompts" placeholder="Find a saved prompt…" value={query} onChange={(event) => setQuery(event.target.value)} />
-      {prompts.length > 0 && filtered.length === 0 && <p className="pk-muted">No prompts match your search.</p>}
-      {/* Tip bar */}
-      <div className="mb-3 rounded-xl border border-[var(--pf-border)] bg-[var(--pf-elev)] p-2.5 text-[10.5px] leading-snug text-[var(--pf-muted)]">
-        Save your best prompts here. <span className="text-[var(--pf-fg)]">Type //</span> in the
-        chat prompt to quickly insert one, or <span className="text-[var(--pf-fg)]">click any card</span> below.
+    <div className="pk-sp">
+      {/* Toolbar */}
+      <div className="pk-sp-toolbar">
+        <input type="search" className="p-input" aria-label="Search saved prompts" placeholder="Search prompts…"
+          value={query} onChange={(e) => setQuery(e.target.value)} />
+        <button type="button" className="p-btn p-btn-primary p-btn-sm" onClick={openNew} aria-expanded={Boolean(sheet && !sheet.id)}>
+          + New
+        </button>
+      </div>
+      <div className="pk-sp-meta">
+        <span>{prompts.length} saved · type <kbd>//</kbd> in any chat to insert</span>
+        <button type="button" className="pk-sp-voice" aria-pressed={humanTone}
+          title="Prefix inserted prompts so the AI writes like a real person"
+          onClick={() => { const v = !humanTone; setHumanTone(v); void saveHumanTone(v); }}>
+          <i aria-hidden="true" /> Human voice
+        </button>
       </div>
 
-      {/* Human tone toggle */}
-      <div className="mb-3 flex items-center justify-between rounded-xl border border-[var(--pf-border)] bg-[var(--pf-elev)] p-3">
-        <div className="pr-2">
-          <div className="text-[12px] font-semibold text-[var(--pf-fg)]">{HUMAN_TONE_LABEL}</div>
-          <div className="text-[10px] leading-snug text-[var(--pf-faint)]">
-            {humanTone
-              ? 'On — every prompt you insert is prefixed to make the AI write like a real person.'
-              : 'Off — insert prompts as-is.'}
+      {/* Save sheet */}
+      {sheet && (
+        <section className="pk-sp-sheet" aria-label={sheet.id ? 'Edit prompt' : 'Save a new prompt'}>
+          <div className="pk-sp-sheet-head">
+            <strong>{sheet.id ? 'Edit prompt' : 'Save a prompt'}</strong>
+            <button type="button" className="pk-sp-x" onClick={closeSheet} aria-label="Close">✕</button>
           </div>
-        </div>
-        <Toggle on={humanTone} onChange={toggleHumanTone} />
-      </div>
 
-      {/* + Add button */}
-      <button
-        type="button"
-        onClick={() => {
-          setEditingId(null);
-          setForm({ label: '', content: '' });
-          setShowCreator(true);
-        }}
-        className="mb-3 flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-[var(--pf-border)] py-2.5 text-[11px] font-medium text-[var(--pf-faint)] transition-all hover:border-[var(--pf-accent)] hover:text-[var(--pf-accent)]"
-      >
-        <span className="grid h-5 w-5 place-items-center rounded-full border border-current text-[14px] font-light">
-          +
-        </span>
-        Save new prompt
-      </button>
-
-      {/* Prompt list */}
-      {prompts.length === 0 ? (
-        <p className="text-center text-[11px] text-[var(--pf-faint)] py-6">
-          No saved prompts yet. Click <span className="text-[var(--pf-accent)]">+</span> above or
-          save one from your history.
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map((p) => (
-            <div
-              key={p.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => void insertPrompt(p.content)}
-              onKeyDown={(ev) => {
-                if (ev.target === ev.currentTarget && (ev.key === 'Enter' || ev.key === ' ')) {
-                  ev.preventDefault();
-                  void insertPrompt(p.content);
-                }
-              }}
-              title="Click to insert into the focused AI chat tab"
-              className="group cursor-pointer rounded-xl border border-[var(--pf-border)] bg-[var(--pf-elev)] p-3 transition-colors hover:border-[var(--pf-accent)] hover:bg-[var(--pf-hover)]"
-            >
-              <div className="mb-1 flex items-center justify-between">
-                <span className="text-[12px] font-semibold text-[var(--pf-fg)]">{p.label}</span>
-                <span className="text-[9px] text-[var(--pf-faint)]">
-                  {new Date(p.ts).toLocaleDateString()}
-                </span>
-              </div>
-              <p className="line-clamp-3 whitespace-pre-wrap text-[10.5px] leading-snug text-[var(--pf-muted)]">
-                {p.content}
-              </p>
-              <div className="mt-2 flex items-center gap-3 opacity-100">
-                <span className="text-[10px] font-medium text-[var(--pf-accent)]">Insert →</span>
-                <button
-                  type="button"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    void navigator.clipboard?.writeText(withHumanTone(p.content, humanTone));
-                    flash(humanTone ? 'Copied with human tone' : 'Copied');
-                  }}
-                  className="text-[10px] text-[var(--pf-muted)] hover:text-[var(--pf-fg)]"
-                >
-                  Copy
-                </button>
-                <button
-                  type="button"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    startEdit(p);
-                  }}
-                  className="text-[10px] text-[var(--pf-muted)] hover:text-[var(--pf-fg)]"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    void handleDelete(p.id);
-                  }}
-                  className="text-[10px] text-rose-400/70 hover:text-rose-400"
-                >
-                  Delete
-                </button>
+          {!sheet.id && (
+            <div className="pk-sp-field">
+              <span className="pk-sp-label">Start from</span>
+              <div className="pk-sp-starters" role="radiogroup" aria-label="Template starter">
+                {PROMPT_STARTERS.map((s) => (
+                  <button key={s.id} type="button" role="radio" aria-checked={starter === s.id} onClick={() => pickStarter(s.id)}>
+                    {s.label}
+                  </button>
+                ))}
               </div>
             </div>
+          )}
+
+          <label className="pk-sp-field">
+            <span className="pk-sp-label">Name</span>
+            <input ref={nameRef} className="p-input" value={draft.label} maxLength={60} placeholder="e.g. Product launch tweet"
+              onChange={(e) => setDraft((d) => ({ ...d, label: e.target.value }))} />
+          </label>
+
+          <div className="pk-sp-field">
+            <span className="pk-sp-label">Category</span>
+            <div className="pk-sp-cats" role="radiogroup" aria-label="Category">
+              {PROMPT_CATEGORIES.map((c) => (
+                <button key={c} type="button" role="radio" aria-checked={draft.category === c}
+                  onClick={() => setDraft((d) => ({ ...d, category: c }))}>{c}</button>
+              ))}
+            </div>
+          </div>
+
+          <label className="pk-sp-field">
+            <span className="pk-sp-label">Prompt</span>
+            <textarea className="p-input pf-scroll" rows={6} value={draft.content}
+              placeholder="Write the prompt. Use [CAPITALS] for parts you'll fill in each time."
+              onChange={(e) => setDraft((d) => ({ ...d, content: e.target.value, template: d.template || promptVariables(e.target.value).length > 0 }))} />
+          </label>
+
+          {vars.length > 0 && (
+            <div className="pk-sp-vars" aria-label="Detected variables">
+              {vars.map((v) => <span key={v}>{v}</span>)}
+            </div>
+          )}
+
+          <label className="pk-sp-check">
+            <input type="checkbox" checked={draft.template} onChange={(e) => setDraft((d) => ({ ...d, template: e.target.checked }))} />
+            <span>
+              <strong>Save as reusable template</strong>
+              <small>{vars.length ? `You'll fill ${vars.length} variable${vars.length === 1 ? '' : 's'} before inserting.` : 'Add [VARIABLES] to fill in each time you use it.'}</small>
+            </span>
+          </label>
+
+          <div className="pk-sp-actions">
+            <button type="button" className="p-btn p-btn-ghost p-btn-sm" onClick={closeSheet}>Cancel</button>
+            <button type="button" className="p-btn p-btn-primary p-btn-sm" onClick={() => void save()}
+              disabled={!draft.label.trim() || !draft.content.trim()}>
+              {sheet.id ? 'Update' : draft.template ? 'Save template' : 'Save prompt'}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Category chips */}
+      {chips.length > 2 && (
+        <div className="pk-sp-chips" role="group" aria-label="Filter by category">
+          {chips.map((c) => (
+            <button key={c} type="button" aria-pressed={category === c} onClick={() => setCategory(c)}>
+              {c}{c !== 'All' && <small>{counts[c]}</small>}
+            </button>
           ))}
         </div>
       )}
 
-      {/* Creator / Editor Modal */}
-      {showCreator && (
-        <div
-          className="pf-modal-overlay fixed inset-0 z-[2147483647] grid place-items-center bg-black/40 backdrop-blur-sm"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowCreator(false);
-              setEditingId(null);
-            }
-          }}
-        >
-          <div className="pf-modal-body w-[320px] rounded-2xl border border-[var(--pf-border)] bg-[var(--pf-surface)] p-5 shadow-2xl backdrop-blur-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-[14px] font-semibold text-[var(--pf-fg)]">
-                {editingId ? 'Edit Prompt' : 'Save New Prompt'}
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCreator(false);
-                  setEditingId(null);
-                }}
-                className="grid h-6 w-6 place-items-center rounded-full text-[var(--pf-faint)] transition-colors hover:bg-[var(--pf-hover)] hover:text-[var(--pf-fg)]"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-faint)]">
-                  Label
-                </label>
-                <input
-                  value={form.label}
-                  onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-                  placeholder="e.g. Senior React Job Post"
-                  maxLength={60}
-                  className="w-full rounded-lg border border-[var(--pf-border)] bg-black/20 px-3 py-1.5 text-xs text-[var(--pf-fg)] placeholder:text-[var(--pf-faint)] focus:border-[var(--pf-accent)] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-faint)]">
-                  Prompt content
-                </label>
-                <textarea
-                  value={form.content}
-                  onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-                  placeholder="Paste or type the full prompt text…"
-                  rows={5}
-                  className="w-full resize-none rounded-lg border border-[var(--pf-border)] bg-black/20 px-3 py-1.5 text-xs leading-snug text-[var(--pf-fg)] placeholder:text-[var(--pf-faint)] focus:border-[var(--pf-accent)] focus:outline-none pf-scroll"
-                />
-              </div>
-            </div>
-
-            <div className="mt-5 flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCreator(false);
-                  setEditingId(null);
-                }}
-                className="flex-1 rounded-xl border border-[var(--pf-border)] bg-[var(--pf-elev)] py-2 text-xs font-medium text-[var(--pf-muted)] transition-colors hover:bg-[var(--pf-hover)]"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={editingId ? handleUpdate : handleCreate}
-                disabled={!form.label.trim() || !form.content.trim()}
-                className="flex-1 rounded-xl bg-[var(--pf-accent)] py-2 text-xs font-semibold text-[var(--pf-accent-fg)] transition-opacity hover:opacity-90 disabled:opacity-40"
-              >
-                {editingId ? 'Update' : 'Save'}
-              </button>
-            </div>
-          </div>
+      {/* List */}
+      {prompts.length === 0 ? (
+        <div className="pk-sp-empty">
+          <strong>No saved prompts yet</strong>
+          <span>Save one with <b>+ New</b>, or star a prompt in History.</span>
         </div>
+      ) : filtered.length === 0 ? (
+        <p className="pk-muted">No prompts match.</p>
+      ) : (
+        <ul className="pk-sp-list">
+          {filtered.map((p) => {
+            const pv = p.template ? promptVariables(p.content) : [];
+            return (
+              <li key={p.id} className="pk-sp-row" data-open={filling === p.id}>
+                <button type="button" className="pk-sp-main" onClick={() => open(p)}
+                  title={pv.length ? 'Fill in the variables, then insert' : 'Insert into the focused AI chat'}>
+                  <span className="pk-sp-title">
+                    <strong>{p.label}</strong>
+                    {p.template && <em>Template</em>}
+                  </span>
+                  <span className="pk-sp-preview">{p.content}</span>
+                  <span className="pk-sp-foot">
+                    {p.category ?? 'General'}{pv.length ? ` · ${pv.length} variable${pv.length === 1 ? '' : 's'}` : ''}
+                  </span>
+                </button>
+                <div className="pk-sp-tools">
+                  <button type="button" aria-label={`Copy ${p.label}`} title="Copy"
+                    onClick={() => { void navigator.clipboard?.writeText(withHumanTone(p.content, humanTone)); flash('Copied'); }}>
+                    <Icon d="M8 8h11v13H8zM5 16H4V3h11v1" />
+                  </button>
+                  <button type="button" aria-label={`Edit ${p.label}`} title="Edit" onClick={() => openEdit(p)}>
+                    <Icon d="m4 20 4-1 11-11-3-3L5 16l-1 4Z" />
+                  </button>
+                  <button type="button" aria-label={confirmDelete === p.id ? `Confirm delete ${p.label}` : `Delete ${p.label}`}
+                    title={confirmDelete === p.id ? 'Click again to delete' : 'Delete'}
+                    data-danger={confirmDelete === p.id} onClick={() => void remove(p.id)}>
+                    {confirmDelete === p.id ? <span>Delete?</span> : <Icon d="M5 7h14M10 7V4h4v3m-7 0 1 13h8l1-13" />}
+                  </button>
+                </div>
+
+                {filling === p.id && (
+                  <div className="pk-sp-fill">
+                    {pv.map((v) => (
+                      <label key={v}>
+                        <span>{v}</span>
+                        <input className="p-input" value={values[v] ?? ''} placeholder={v.toLowerCase()}
+                          onChange={(e) => setValues((x) => ({ ...x, [v]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === 'Enter') void insert(fillPromptVariables(p.content, values)); }} />
+                      </label>
+                    ))}
+                    <div className="pk-sp-actions">
+                      <button type="button" className="p-btn p-btn-ghost p-btn-sm" onClick={() => setFilling(null)}>Cancel</button>
+                      <button type="button" className="p-btn p-btn-ghost p-btn-sm"
+                        onClick={() => { void navigator.clipboard?.writeText(withHumanTone(fillPromptVariables(p.content, values), humanTone)); flash('Copied'); }}>
+                        Copy
+                      </button>
+                      <button type="button" className="p-btn p-btn-primary p-btn-sm" onClick={() => void insert(fillPromptVariables(p.content, values))}>
+                        Insert
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
+  );
+}
+
+function Icon({ d }: { d: string }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={d} />
+    </svg>
   );
 }
 

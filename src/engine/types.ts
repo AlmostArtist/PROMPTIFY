@@ -96,4 +96,8 @@ export interface SavedPrompt {
   content: string;
   /** Epoch ms when saved. */
   ts: number;
+  /** Library category (Writing, Coding, Image…). Missing on older prompts → General. */
+  category?: string;
+  /** Reusable template: [VARIABLES] are filled in before inserting. */
+  template?: boolean;
 }
