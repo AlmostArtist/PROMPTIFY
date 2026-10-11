@@ -245,7 +245,7 @@ export async function removeSavedPrompt(id: string): Promise<SavedPrompt[]> {
   return next;
 }
 
-export async function updateSavedPrompt(id: string, patch: Partial<Pick<SavedPrompt, 'label' | 'content'>>): Promise<SavedPrompt[]> {
+export async function updateSavedPrompt(id: string, patch: Partial<Pick<SavedPrompt, 'label' | 'content' | 'category' | 'template'>>): Promise<SavedPrompt[]> {
   const all = await loadSavedPrompts();
   const next = all.map((p) => (p.id === id ? { ...p, ...patch } : p));
   await saveSavedPrompts(next);

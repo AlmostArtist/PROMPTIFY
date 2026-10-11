@@ -34,7 +34,7 @@ test('native requests connect directly because nativeMessaging is a manifest per
 });
 
 test('native registration errors point to the appropriate recovery action', () => {
-  assert.match(connectionError('Specified native messaging host not found.'), /install command/);
-  assert.match(connectionError('Access to the specified native messaging host is forbidden.'), /extension ID/);
+  assert.match(connectionError('Specified native messaging host not found.'), /companion installer/);
+  assert.match(connectionError('Access to the specified native messaging host is forbidden.'), /different PROMPTIFY install.*installer again/);
   assert.match(connectionError('Permission is not declared in optional_permissions'), /Reload/);
 });
