@@ -16,6 +16,12 @@ export function Connections({ onChange, onSettings, flash }: {
   const [error, setError] = useState('');
   const [loginPending, setLoginPending] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState<CliProvider | null>(null);
+  // Shared downloads include companion/ with a double-click installer; a dev
+  // server run from source does not, and uses the npm script instead.
+  const [packaged, setPackaged] = useState<boolean | null>(null);
+  useEffect(() => {
+    void fetch(chrome.runtime.getURL('companion/install.mjs')).then((r) => setPackaged(r.ok)).catch(() => setPackaged(false));
+  }, []);
   const running = useRef(false);
 
   const refresh = useCallback(async () => {
@@ -164,8 +170,18 @@ export function Connections({ onChange, onSettings, flash }: {
         <button className="pk-text-link" onClick={() => void chrome.tabs.create({ url: chrome.runtime.getURL('sidepanel.html#connections') })}>Open setup in a tab ↗</button>
       </div>
       <details open={Boolean(error)}><summary>Setup instructions</summary>
-        <ol className="pk-setup"><li>Install <a href="https://developers.openai.com/codex/cli" target="_blank" rel="noreferrer">Codex CLI</a> or <a href="https://code.claude.com/docs/en/setup" target="_blank" rel="noreferrer">Claude Code</a> and Node.js 20+.</li>
-          <li>In the PROMPTIFY project folder, run:<div className="pk-command"><code>npm run companion:install -- {chrome.runtime.id}</code><button aria-label="Copy companion install command" onClick={() => void copy(`npm run companion:install -- ${chrome.runtime.id}`)}>Copy</button></div><p>Using Edge or Brave? Add <code>edge</code> or <code>brave</code> at the end.</p></li>
+        <ol className="pk-setup"><li>Install <a href="https://nodejs.org/en/download" target="_blank" rel="noreferrer">Node.js</a> (LTS), plus <a href="https://developers.openai.com/codex/cli" target="_blank" rel="noreferrer">Codex CLI</a> for ChatGPT or <a href="https://code.claude.com/docs/en/setup" target="_blank" rel="noreferrer">Claude Code</a> for Claude.</li>
+          {packaged !== false ? (
+            <li>Open the PROMPTIFY folder you loaded in Chrome, go into <code>companion</code>, and double-click <b>Install Companion.command</b> (Linux: <code>sh install-companion.sh</code>). It finds this extension automatically — no npm or project source needed.
+              <p>If macOS says it's from an unidentified developer, right-click the file → Open → Open. Terminal alternative: type <code>node </code>, drag <code>install.mjs</code> from that folder into the window, press Enter.</p>
+              <p>If it asks for the extension ID, paste this:</p>
+              <div className="pk-command"><code>{chrome.runtime.id}</code><button aria-label="Copy extension ID" onClick={() => void copy(chrome.runtime.id)}>Copy</button></div>
+              <p>Moved the PROMPTIFY folder? Its ID changes — run the installer again.</p>
+            </li>
+          ) : (
+            <li>In the PROMPTIFY project folder, run:<div className="pk-command"><code>npm run companion:install</code><button aria-label="Copy companion install command" onClick={() => void copy('npm run companion:install')}>Copy</button></div><p>It finds this extension automatically. To target a specific one, add <code>-- {chrome.runtime.id}</code> (and <code>edge</code> or <code>brave</code>).</p></li>
+          )}
+          <li>Reload PROMPTIFY at <code>chrome://extensions</code>, then come back here.</li>
           <li>Click Log in with ChatGPT or Claude above. Existing CLI logins are detected automatically. You can also use a terminal:
             {[BRAND.codex.login, BRAND.claude.login, BRAND.codex.logout, BRAND.claude.logout].map((command) => <div className="pk-command" key={command}><code>{command}</code><button aria-label={`Copy ${command}`} onClick={() => void copy(command)}>Copy</button></div>)}
           </li><li>Recheck the connection and choose “Use this account”.</li></ol>

@@ -53,15 +53,22 @@ select a model. The key is stored in Chrome local extension storage.
 The optional native companion supports macOS and Linux. Install a current
 [Codex CLI](https://developers.openai.com/codex/cli) or
 [Claude Code](https://code.claude.com/docs/en/setup), sign in through the
-official CLI, then run this command from the PROMPTIFY project directory:
+official CLI, and have [Node.js](https://nodejs.org) 20+ installed. Then run the
+companion installer — it finds the PROMPTIFY extension ID automatically by
+reading your browser profiles:
 
-```sh
-npm run companion:install -- <extension-id>
-```
+- **From a shared download / zip** (no npm or source needed): open the
+  extension folder's `companion/` directory and double-click
+  `Install Companion.command` on macOS, or run `sh install-companion.sh` on
+  Linux. Every build bundles this folder (see `bundleCompanion` in
+  `vite.config.ts`).
+- **From the project source:** `npm run companion:install`
 
-Chrome is the default. Append `edge`, `brave`, or `chromium` for another
-supported Chromium browser. Reload the extension after installation. The
-companion registration is restricted to the extension ID you provide. Running
+If detection fails, the installer asks for the ID (shown in Connect → Setup
+instructions), or pass it explicitly: `node install.mjs <extension-id> [edge|brave|chromium]`.
+Reload the extension after installation. The companion registration is
+restricted to the detected/provided extension ID; an unpacked extension's ID
+changes if its folder moves, so re-run the installer after moving it. Running
 the installer again also migrates installations from the former Prompt Kido
 native-host name.
 

@@ -1,0 +1,50 @@
+PROMPTIFY — install in Chrome (about 1 minute)
+==============================================
+
+1. Unzip the download. You'll get a folder containing manifest.json.
+   Keep that folder somewhere permanent (e.g. Documents) — Chrome loads
+   the extension from it, so don't delete or move it afterwards.
+
+2. Open Chrome and go to:  chrome://extensions
+
+3. Turn on "Developer mode" (switch in the top-right corner).
+
+4. Click "Load unpacked" and select the unzipped folder
+   (the one that contains manifest.json).
+
+5. Pin PROMPTIFY from the puzzle-piece menu, then click its icon to open
+   the side panel.
+
+Connect an AI — option A: OpenRouter (free, easiest)
+----------------------------------------------------
+- Side panel → Connect → OpenRouter → Manage API key.
+- Get a free key at https://openrouter.ai/keys and paste it in Settings.
+  Your key stays in your own browser.
+
+Connect an AI — option B: your ChatGPT / Claude account (macOS & Linux)
+-----------------------------------------------------------------------
+Uses the official Codex CLI (ChatGPT) or Claude Code on this computer.
+Everything needed is inside this folder — no npm or project source.
+
+1. Install Node.js (LTS) from https://nodejs.org if you don't have it.
+2. Install the CLI you want and sign in once:
+     ChatGPT  → Codex CLI    https://developers.openai.com/codex/cli
+     Claude   → Claude Code  https://code.claude.com/docs/en/setup
+3. Open the "companion" folder inside this PROMPTIFY folder and
+   double-click "Install Companion.command" (Linux: sh install-companion.sh).
+   It finds your PROMPTIFY extension automatically.
+   macOS may say the file is from an unidentified developer: right-click it,
+   choose Open, then Open again.
+   Terminal alternative:  node "<this folder>/companion/install.mjs"
+4. Reload PROMPTIFY at chrome://extensions, open Connect, and click
+   "Log in with ChatGPT" or "Log in with Claude".
+
+If you move the PROMPTIFY folder later, its extension ID changes — run the
+companion installer again.
+
+Notes
+-----
+- Works in Chrome, Edge, Brave and other Chromium browsers.
+- To update: replace the folder's contents with the newer version, click the
+  reload icon on PROMPTIFY in chrome://extensions, and re-run the companion
+  installer if you use it.

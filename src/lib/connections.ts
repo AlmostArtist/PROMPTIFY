@@ -33,17 +33,19 @@ export type CliRequest =
 
 export function connectionError(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error || 'Unknown connection error.');
-  if (/not found|not registered|specified native messaging host/i.test(message)) {
-    return 'Chrome could not find the local companion. Run the install command below for this extension ID, then retry.';
-  }
+  // "Access to the specified native messaging host is forbidden" also contains
+  // "specified native messaging host", so the wrong-ID case must be checked first.
   if (/forbidden|not allowed|access.*denied/i.test(message)) {
-    return 'The companion is not registered for this extension ID. Run the install command below again, then retry.';
+    return 'The companion is registered for a different PROMPTIFY install (the folder may have moved). Run the companion installer again, reload PROMPTIFY, then retry.';
+  }
+  if (/not found|not registered|specified native messaging host/i.test(message)) {
+    return 'Chrome could not find the local companion. Run the companion installer (Setup instructions below), reload PROMPTIFY, then retry.';
   }
   if (/not declared|optional_permissions|permission.*manifest/i.test(message)) {
     return 'Chrome is still using the old extension permissions. Reload PROMPTIFY at chrome://extensions, then reopen Connect.';
   }
   if (/native host has exited|failed to start|disconnected/i.test(message)) {
-    return 'The local companion stopped. Reinstall it with the command below so it uses your current Node.js and CLI paths.';
+    return 'The local companion stopped. Run the companion installer again so it uses your current Node.js and CLI paths.';
   }
   return message;
 }
